@@ -46,4 +46,19 @@ const printPlaces = (arrayOfPlaces, places) => {
       </li>  
     `;
   }
+  selectedPlaces(places);
+}
+
+const selectedPlaces = (listOfPlaces) => {
+  let list = listOfPlaces.getElementsByTagName('li');
+  for (let i = 0; i < list.length; i++) {
+    list[i].addEventListener('click', () => {
+      for (let j = 0; j < list.length; j++) {
+        if (list[j].classList.contains('selected')) {
+          list[j].classList.remove('selected');
+        }
+      }
+      list[i].classList.add('selected');
+    })
+  }
 }
