@@ -3,10 +3,18 @@ const openMapAPIToken = 'pk.eyJ1IjoicmFra2kiLCJhIjoiY2tqbmM2Mm5tMHNvYzJycW5mZzVm
 const bbox = "bbox=-97.325875, 49.766204, -96.953987, 49.99275";
 const originForm = document.querySelector('.origin-form');
 const origins = document.querySelector('.origins');
+const destinationForm = document.querySelector('.destination-form');
+const destinations = document.querySelector('.destinations');
 
 originForm.addEventListener('submit', (event) => {
   const input = event.target.querySelector('input');
   getRelatedOriginPlaces(input.value, origins);
+  event.preventDefault();
+})
+
+destinationForm.addEventListener('submit', (event) => {
+  const input = event.target.querySelector('input');
+  getRelatedOriginPlaces(input.value, destinations);
   event.preventDefault();
 })
 
