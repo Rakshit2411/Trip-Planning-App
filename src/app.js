@@ -5,6 +5,7 @@ const originForm = document.querySelector('.origin-form');
 const origins = document.querySelector('.origins');
 const destinationForm = document.querySelector('.destination-form');
 const destinations = document.querySelector('.destinations');
+const planTrip = document.querySelector(".plan-trip");
 
 originForm.addEventListener('submit', (event) => {
   const input = event.target.querySelector('input');
@@ -27,7 +28,7 @@ const getRelatedOriginPlaces = (place, placeOfInterest) => {
 
 const printPlaces = (arrayOfPlaces, places) => {
   places.innerHTML = "";
-  if (arrayOfPlaces.length != 0) {
+  if (arrayOfPlaces.length > 0) {
     arrayOfPlaces.forEach(element => {
 
       let locationAddress = element['place_name'].split(',');
@@ -61,4 +62,31 @@ const selectedPlaces = (listOfPlaces) => {
       list[i].classList.add('selected');
     })
   }
+}
+
+planTrip.addEventListener('click', () => {
+  getTripGuidence();
+});
+
+const getCoordinates = (positions) => {
+
+  let latitude;
+  let longitude;
+  let position = positions.getElementsByTagName('li');
+
+  for (let i = 0; i < position.length; i++) {
+    if (position[i].classList.contains("selected")) {
+      latitude = position[i].getAttribute("data-lat");
+      longitude = position[i].getAttribute("data-long");
+    }
+  }
+  return "geo/" + latitude + "," + longitude;
+}
+
+
+const getTripGuidence = () => {
+  fetch("https://api.winnipegtransit.com/v3/trip-planner.json?origin=" + getCoordinates(origins) + "&destination=" + getCoordinates(destinations) + "&api-key=" + transitAPIKey)
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(err => console.log(err))
 }
