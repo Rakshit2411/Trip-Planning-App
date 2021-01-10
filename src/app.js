@@ -8,19 +8,7 @@ const destinations = document.querySelector('.destinations');
 const planTrip = document.querySelector(".plan-trip");
 const myTrip = document.querySelector(".my-trip");
 
-originForm.addEventListener('submit', (event) => {
-  const input = event.target.querySelector('input');
-  getRelatedOriginPlaces(input.value, origins);
-  event.preventDefault();
-})
-
-destinationForm.addEventListener('submit', (event) => {
-  const input = event.target.querySelector('input');
-  getRelatedOriginPlaces(input.value, destinations);
-  event.preventDefault();
-})
-
-const getRelatedOriginPlaces = (place, placeOfInterest) => {
+const getRelatedPlaces = (place, placeOfInterest) => {
   fetch("https://api.mapbox.com/geocoding/v5/mapbox.places/" + place + ".json?types=poi&limit=10&" + bbox + "&access_token=" + openMapAPIToken)
     .then(response => response.json())
     .then(data => printPlaces(data.features, placeOfInterest))
@@ -60,10 +48,6 @@ const selectedPlaces = (listOfPlaces) => {
     })
   }
 }
-
-planTrip.addEventListener('click', () => {
-  getTripGuidance();
-});
 
 const getCoordinates = (positions) => {
 
@@ -171,3 +155,19 @@ const printTrip = (trip) => {
       </li>`;
   }
 }
+
+originForm.addEventListener('submit', (event) => {
+  const input = event.target.querySelector('input');
+  getRelatedPlaces(input.value, origins);
+  event.preventDefault();
+})
+
+destinationForm.addEventListener('submit', (event) => {
+  const input = event.target.querySelector('input');
+  getRelatedPlaces(input.value, destinations);
+  event.preventDefault();
+})
+
+planTrip.addEventListener('click', () => {
+  getTripGuidance();
+});
