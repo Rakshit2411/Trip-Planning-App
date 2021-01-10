@@ -42,11 +42,7 @@ const printPlaces = (arrayOfPlaces, places) => {
         </li>`)
     });
   } else {
-    places.innerHTML = `
-      <li>
-        <p><b>None of the places matches with your search result !!</b></p>
-      </li>  
-    `;
+    places.innerHTML = `<p><b>None of the places matches with your search result !!</b></p>`;
   }
   selectedPlaces(places);
 }
@@ -86,10 +82,41 @@ const getCoordinates = (positions) => {
 
 
 const getTripGuidance = () => {
-  fetch("https://api.winnipegtransit.com/v3/trip-planner.json?origin=" + getCoordinates(origins) + "&destination=" + getCoordinates(destinations) + "&api-key=" + transitAPIKey)
-    .then(response => response.json())
-    .then(data => printTrip(data.plans[0].segments))
-    .catch(err => console.log(err))
+
+  myTrip.textContent = "";
+  let originCoords = getCoordinates(origins);
+  let destinationCoords = getCoordinates(destinations);
+  let undefined = "geo/undefined,undefined";
+
+  if (originCoords != undefined && destinationCoords != undefined) {
+    if (originCoords === destinationCoords) {
+      myTrip.innerHTML = `
+     <li>
+       <p><b>Your starting location and destination are same !!
+             Please select different starting location or destination !!</b></p>
+     </li>`
+    } else {
+      fetch("https://api.winnipegtransit.com/v3/trip-planner.json?origin=" + getCoordinates(origins) + "&destination=" + getCoordinates(destinations) + "&api-key=" + transitAPIKey)
+        .then(response => response.json())
+        .then(data => printTrip(data.plans[0].segments))
+        .catch(err => console.log(err))
+    }
+  } else if (originCoords === undefined && destinationCoords === undefined) {
+    myTrip.innerHTML = `
+      <li>
+        <p><b>Please search and select your starting location and destination !!</b></p>
+      </li>`
+  } else if (destinationCoords === undefined) {
+    myTrip.innerHTML = `
+      <li>
+        <p><b>Please search and select your destination !!</b></p>
+      </li>`
+  } else {
+    myTrip.innerHTML = `
+      <li>
+        <p><b>Please search and select your starting location !!</b></p>
+      </li>`
+  }
 }
 
 const makeCapital = (string) => {
@@ -99,33 +126,48 @@ const makeCapital = (string) => {
 const printTrip = (trip) => {
   myTrip.textContent = "";
   let htmlEle = ``;
-  trip.forEach(segment => {
-    if (segment.type === "walk") {
-      if (segment.to.destination) {
+  if (trip.length > 0) {
+    trip.forEach(segment => {
+
+      let segmentType = makeCapital(segment.type);
+      let time = segment.times.durations.total;
+
+      if (segmentType === "Walk") {
+        if (segment.to.destination) {
+          htmlEle = `
+          <li>
+            <i class="fas fa-walking"></i>${segmentType} for ${time} minutes to your destination.
+          </li>`;
+        } else {
+          htmlEle = `
+          <li>
+            <i class="fas fa-walking"></i>${segmentType} for ${time} minutes to stop #${segment.to.stop.key}-${segment.to.stop.name}.
+          </li>`;
+        }
+      } else if (segmentType === "Ride") {
+        if (segment.route.key === "BLUE") {
+          htmlEle = `
+          <li>
+            <i class="fas fa-bus"></i>${segmentType} the ${segment.route.key} for ${time} minutes.
+          </li>`
+        } else {
+          htmlEle = `
+          <li>
+            <i class="fas fa-bus"></i>${segmentType} the ${segment.route.name} for ${time} minutes.
+          </li>`
+        }
+      } else if (segmentType === "Transfer") {
         htmlEle = `
         <li>
-          <i class="fas fa-walking"></i>${makeCapital(segment.type)} for ${segment.times.durations.total} minutes
-          to your destination. 
-        </li>`;
-      } else {
-        htmlEle = `
-        <li>
-          <i class="fas fa-walking"></i>${makeCapital(segment.type)} for ${segment.times.durations.total} minutes
-          to stop #${segment.to.stop.key}-${segment.to.stop.name}. 
-        </li>`;
+          <i class="fas fa-ticket-alt"></i>${segmentType} from stop #${segment.from.stop.key}-${segment.from.stop.name} to stop #${segment.to.stop.key}-${segment.to.stop.name}.
+        </li>`
       }
-    }else if(segment.type === "ride"){
-      if(segment.route.key === "BLUE"){
-        htmlEle = `
-        <li><i class="fas fa-bus"></i>${makeCapital(segment.type)} the ${segment.route.key} for ${segment.times.durations.total} minutes.`
-      }else{
-        htmlEle = `
-        <li><i class="fas fa-bus"></i>${makeCapital(segment.type)} the ${segment.route.name} for ${segment.times.durations.total} minutes.`
-      }
-    }else if(segment.type === "transfer"){
-      htmlEle = `
-      <li><i class="fas fa-ticket-alt"></i>${makeCapital(segment.type)} from stop #${segment.from.stop.key}-${segment.from.stop.name} to stop #${segment.to.stop.key}-${segment.to.stop.name}.`
-    }
-    myTrip.insertAdjacentHTML('beforeend', htmlEle);
-  })
+      myTrip.insertAdjacentHTML('beforeend', htmlEle);
+    })
+  } else {
+    myTrip.innerHTML = `
+      <li>
+        <p><b> No routs available right now !!</b></p>
+      </li>`;
+  }
 }
