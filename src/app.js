@@ -6,6 +6,7 @@ const origins = document.querySelector('.origins');
 const destinationForm = document.querySelector('.destination-form');
 const destinations = document.querySelector('.destinations');
 const planTrip = document.querySelector(".plan-trip");
+const myTrip = document.querySelector(".my-trip");
 
 originForm.addEventListener('submit', (event) => {
   const input = event.target.querySelector('input');
@@ -65,7 +66,7 @@ const selectedPlaces = (listOfPlaces) => {
 }
 
 planTrip.addEventListener('click', () => {
-  getTripGuidence();
+  getTripGuidance();
 });
 
 const getCoordinates = (positions) => {
@@ -84,9 +85,47 @@ const getCoordinates = (positions) => {
 }
 
 
-const getTripGuidence = () => {
+const getTripGuidance = () => {
   fetch("https://api.winnipegtransit.com/v3/trip-planner.json?origin=" + getCoordinates(origins) + "&destination=" + getCoordinates(destinations) + "&api-key=" + transitAPIKey)
     .then(response => response.json())
-    .then(data => console.log(data))
+    .then(data => printTrip(data.plans[0].segments))
     .catch(err => console.log(err))
+}
+
+const makeCapital = (string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+const printTrip = (trip) => {
+  myTrip.textContent = "";
+  let htmlEle = ``;
+  trip.forEach(segment => {
+    if (segment.type === "walk") {
+      if (segment.to.destination) {
+        htmlEle = `
+        <li>
+          <i class="fas fa-walking"></i>${makeCapital(segment.type)} for ${segment.times.durations.total} minutes
+          to your destination. 
+        </li>`;
+      } else {
+        htmlEle = `
+        <li>
+          <i class="fas fa-walking"></i>${makeCapital(segment.type)} for ${segment.times.durations.total} minutes
+          to stop #${segment.to.stop.key}-${segment.to.stop.name}. 
+        </li>`;
+      }
+    }else if(segment.type === "ride"){
+      if(segment.route.key === "BLUE"){
+        htmlEle = `
+        <li><i class="fas fa-bus"></i>${makeCapital(segment.type)} the ${segment.route.key} for ${segment.times.durations.total} minutes.`
+      }else{
+        htmlEle = `
+        <li><i class="fas fa-bus"></i>${makeCapital(segment.type)} the ${segment.route.name} for ${segment.times.durations.total} minutes.`
+      }
+    }else if(segment.type === "transfer"){
+      htmlEle = `
+      <li><i class="fas fa-ticket-alt"></i>${makeCapital(segment.type)} from stop #${segment.from.stop.key}-${segment.from.stop.name} to stop #${segment.to.stop.key}-${segment.to.stop.name}.`
+    }
+    myTrip.insertAdjacentHTML('beforeend', htmlEle);
+  })
 }
